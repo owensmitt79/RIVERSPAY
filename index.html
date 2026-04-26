@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RiversPay - Payment Gateway Provider</title>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SECURITY META TAGS
+    ════════════════════════════════════════════════════════════ -->
+
+    <!-- Content Security Policy
+         - default-src 'self'          : only load resources from same origin by default
+         - script-src 'self' 'unsafe-inline': allow inline scripts (required by Vite HMR in dev)
+         - style-src  'self' 'unsafe-inline' fonts.googleapis.com: allow Google Fonts + inline styles
+         - font-src   'self' fonts.gstatic.com                  : Google Fonts files
+         - img-src    'self' data: blob: images.unsplash.com    : local images + Unsplash photos
+         - connect-src 'self' ws: wss:                          : Vite HMR websocket in dev
+         - frame-src  'none'                                    : no iframes from any origin
+         - object-src 'none'                                    : block <object>/<embed>/<applet>
+         - base-uri   'self'                                    : prevent base tag hijacking
+         - form-action 'self'                                   : forms post to same origin only
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src  'self' 'unsafe-inline' 'unsafe-eval';
+        style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src    'self' https://fonts.gstatic.com;
+        img-src     'self' data: blob: https://images.unsplash.com;
+        connect-src 'self' ws: wss: https://images.unsplash.com;
+        frame-src   'none';
+        object-src  'none';
+        base-uri    'self';
+        form-action 'self';
+      "
+    />
+
+    <!-- Prevent this page from being embedded in iframes (clickjacking) -->
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+
+    <!-- Prevent MIME-type sniffing attacks -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+
+    <!-- Control referrer information sent with requests -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- Disable unused powerful browser APIs -->
+    <meta
+      http-equiv="Permissions-Policy"
+      content="
+        camera=(),
+        microphone=(),
+        geolocation=(),
+        payment=(),
+        usb=(),
+        magnetometer=(),
+        accelerometer=(),
+        gyroscope=()
+      "
+    />
+
+    <!-- Force HTTPS only (useful when page is served over HTTPS) -->
+    <meta
+      http-equiv="Strict-Transport-Security"
+      content="max-age=31536000; includeSubDomains"
+    />
+
+    <!-- Disable browser caching of sensitive pages -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
