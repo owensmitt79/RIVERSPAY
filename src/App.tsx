@@ -19,6 +19,7 @@ import SalaryPaymentPage from './pages/SalaryPaymentPage';
 import PensionSchedulePage from './pages/PensionSchedulePage';
 import GenericContentPage from './pages/GenericContentPage';
 import BusinessPage from './pages/BusinessPage';
+import MerchantDashboard from './pages/MerchantDashboard';
 import Footer from './sections/Footer';
 import RiversPayAssistantButton from './components/RiversPayAssistantButton';
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/business" element={<BusinessPage />} />
         <Route path="/press" element={<GenericContentPage title="Press & Media" subtitle="Latest news and press kits from RiversPay." />} />
         <Route path="/partners" element={<GenericContentPage title="Partners Program" subtitle="Join our ecosystem of integrated payment partners." />} />
+        <Route path="/dashboard" element={<MerchantDashboard />} />
       </Routes>
       <Footer />
       <RiversPayAssistantButton />

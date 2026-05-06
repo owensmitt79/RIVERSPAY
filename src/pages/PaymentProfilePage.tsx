@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 export default function PaymentProfilePage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [rspNumber, setRspNumber] = useState('');
+  const [rpnNumber, setRpnNumber] = useState('');
   
   // Get data from navigation state or use defaults for demo
   const { 
@@ -17,17 +17,20 @@ export default function PaymentProfilePage() {
   } = location.state || {};
 
   useEffect(() => {
-    // Generate a random RSP number: RSP-XXXX-XXXX-XXXX
-    const generateSegment = () => Math.floor(1000 + Math.random() * 9000);
-    setRspNumber(`RSP-${generateSegment()}-${generateSegment()}-${generateSegment()}`);
+    // Generate a random RPN number: RPN-YYYYMMDDHHMMSS-RANDOM-CHECKSUM
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const checksum = Math.random().toString(36).substring(2, 4).toUpperCase();
+    setRpnNumber(`RPN-${timestamp}-${random}-${checksum}`);
     
     // Scroll to top
     window.scrollTo(0, 0);
   }, []);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(rspNumber);
-    alert('RSP Number copied to clipboard!');
+    navigator.clipboard.writeText(rpnNumber);
+    alert('RPN Number copied to clipboard!');
   };
 
   return (
@@ -55,26 +58,26 @@ export default function PaymentProfilePage() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-slate-900">Payment Profile Created!</h2>
-              <p className="text-slate-600 mt-1">Your transaction has been initialized successfully. Use the RSP number below to complete your payment.</p>
+              <p className="text-slate-600 mt-1">Your transaction has been initialized successfully. Use the RPN number below to complete your payment.</p>
             </div>
           </div>
 
-          {/* RSP Number Card */}
+          {/* RPN Number Card */}
           <div className="bg-white border border-slate-200 shadow-xl rounded-[24px] overflow-hidden">
             <div className="bg-brand-primary px-8 py-6 flex justify-between items-center bg-gradient-to-r from-brand-primary to-brand-primary-dark">
-              <span className="text-white/80 font-medium tracking-wider uppercase text-sm">Rivers State Payment Number (RSP)</span>
+              <span className="text-white/80 font-medium tracking-wider uppercase text-sm">Reference Payment Number (RPN)</span>
               <div className="bg-white/20 px-3 py-1 rounded-full text-xs text-white font-bold backdrop-blur-sm">VALID FOR 24H</div>
             </div>
             
             <div className="p-8 sm:p-12 flex flex-col items-center gap-8">
               <div className="relative group">
-                <div className="text-4xl sm:text-5xl font-mono font-bold text-slate-800 tracking-[0.2em] bg-slate-50 px-8 py-6 rounded-2xl border-2 border-dashed border-slate-200 transition-all group-hover:border-brand-primary/30">
-                  {rspNumber}
+                <div className="text-3xl sm:text-4xl font-mono font-bold text-slate-800 tracking-wider bg-slate-50 px-8 py-6 rounded-2xl border-2 border-dashed border-slate-200 transition-all group-hover:border-brand-primary/30">
+                  {rpnNumber}
                 </div>
                 <button 
                   onClick={handleCopy}
                   className="absolute -right-4 -top-4 bg-white border border-slate-200 p-3 rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all text-slate-500 hover:text-brand-primary group-hover:rotate-12"
-                  title="Copy RSP Number"
+                  title="Copy RPN Number"
                 >
                   <Copy className="w-5 h-5" />
                 </button>

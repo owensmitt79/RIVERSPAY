@@ -7,7 +7,7 @@ import type { PersonalSignupData, CorporateSignupData } from '../lib/schemas';
 import { Check, ChevronDown, Loader2 } from 'lucide-react';
 
 type AccountType = 'personal' | 'sole-signatory' | 'multi-signatory' | 'government';
-type Step = 'selection' | 'form' | 'success';
+type Step = 'selection' | 'form' | 'otp' | 'success';
 
 // ── SVG Illustrations (styled to match Remita icons) ──────────────────────
 const PersonalIllustration = () => (
@@ -183,13 +183,50 @@ export default function GetStartedPage() {
         {step === 'form' && selectedType && (
           <div className="w-full max-w-2xl">
             {selectedType === 'personal'
-              ? <PersonalForm onSuccess={() => setStep('success')} onBack={() => setStep('selection')} />
-              : <CorporateForm type={selectedType} onSuccess={() => setStep('success')} onBack={() => setStep('selection')} />
+              ? <PersonalForm onSuccess={() => setStep('otp')} onBack={() => setStep('selection')} />
+              : <CorporateForm type={selectedType} onSuccess={() => setStep('otp')} onBack={() => setStep('selection')} />
             }
           </div>
         )}
 
-        {/* STEP 3 – Success */}
+        {/* STEP 3 – OTP Verification */}
+        {step === 'otp' && (
+          <div className="bg-white rounded-2xl shadow-lg p-12 max-w-md w-full text-center">
+            <h2 className="text-2xl font-bold text-slate-800 mb-3">Verify Your Phone</h2>
+            <p className="text-slate-500 mb-8 leading-relaxed text-sm">
+              We've sent a 6-digit OTP to your phone number. Please enter it below to verify your account.
+            </p>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              // Simulate verification delay, then proceed
+              const btn = e.currentTarget.querySelector('button');
+              if (btn) btn.innerHTML = 'Verifying...';
+              setTimeout(() => {
+                setStep('success');
+              }, 1000);
+            }} className="space-y-6">
+              <input 
+                type="text" 
+                placeholder="000000" 
+                maxLength={6} 
+                className="w-full text-center tracking-[1em] font-bold text-2xl px-4 py-4 bg-[#eaecef] text-slate-700 placeholder-slate-400 rounded-md border-0 outline-none focus:ring-2 focus:ring-[#1a9e87]"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#1a9e87] text-white font-semibold rounded-full hover:bg-[#158070] transition-colors"
+              >
+                Verify OTP
+              </button>
+            </form>
+            <div className="mt-6 text-sm">
+              <span className="text-slate-400">Didn't receive the code? </span>
+              <button className="text-[#1a9e87] font-semibold hover:underline">Resend OTP</button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4 – Success */}
         {step === 'success' && (
           <div className="bg-white rounded-2xl shadow-lg p-12 max-w-md w-full text-center">
             <div className="w-20 h-20 bg-[#e0f2f1] rounded-full flex items-center justify-center mx-auto mb-6">

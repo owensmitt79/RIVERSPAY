@@ -59,7 +59,7 @@ export default function PensionSchedulePage() {
         ...data, 
         service: 'STATUTORY PENSION',
         institution: 'Rivers State Government',
-        rsp: 'RSP-' + Math.floor(Math.random() * 1000000000).toString()
+        rpn: 'RPN-' + Math.floor(Math.random() * 1000000000).toString()
       } 
     });
   };

@@ -36,6 +36,7 @@ const footerLinks = {
       { name: 'Community', href: '/blog' },
       { name: 'API Docs', href: '/developers' },
       { name: 'Status', href: '/status' },
+      { name: 'Admin Portal', href: '/admin_dashboard.html' },
     ],
   },
   legal: {

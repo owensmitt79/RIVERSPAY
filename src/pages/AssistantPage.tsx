@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Send,
-  Sparkles,
   User,
-  Bot,
   ArrowLeft,
   RefreshCw,
   ThumbsUp,
@@ -81,7 +79,7 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
   {
     patterns: ['tsa', 'treasury single account', 'government payment', 'government', 'state payment'],
     response:
-      "**TSA (Treasury Single Account) Payments via RiversPay:**\n\nRiversPay is an authorized platform for Rivers State Government payments.\n\n**How to make a TSA payment:**\n1. Navigate to the **Recharge / Payment** section\n2. Select the **government service category**\n3. Enter your **reference number** or payer details\n4. Confirm the amount and **proceed to pay**\n5. A payment profile with your **RSP number** will be generated\n\n📄 Keep your **RSP (Rivers State Payment) number** as proof of payment for all government transactions.",
+      "**TSA (Treasury Single Account) Payments via RiversPay:**\n\nRiversPay is an authorized platform for Rivers State Government payments.\n\n**How to make a TSA payment:**\n1. Navigate to the **Recharge / Payment** section\n2. Select the **government service category**\n3. Enter your **reference number** or payer details\n4. Confirm the amount and **proceed to pay**\n5. A payment profile with your **RPN number** will be generated\n\n📄 Keep your **RPN (Reference Payment Number)** as proof of payment for all government transactions.",
     suggestions: ['Generate RSP number', 'Payment confirmation', 'Contact government agency'],
   },
   {
@@ -285,8 +283,8 @@ export default function AssistantPage() {
 
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 bg-[#0070E0] rounded-full flex items-center justify-center shadow-md">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md border border-slate-100 overflow-hidden">
+                <img src="/logo.png" alt="RiversPay" className="w-9 h-9 object-contain" />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
             </div>
@@ -319,8 +317,8 @@ export default function AssistantPage() {
           >
             {/* Avatar */}
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 bg-[#0070E0] rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow">
-                <Bot className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow border border-slate-100 overflow-hidden">
+                <img src="/logo.png" alt="RiversPay" className="w-7 h-7 object-contain" />
               </div>
             )}
 
@@ -406,8 +404,8 @@ export default function AssistantPage() {
         {/* Typing indicator */}
         {isTyping && (
           <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 bg-[#0070E0] rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow">
-              <Bot className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow border border-slate-100 overflow-hidden">
+              <img src="/logo.png" alt="RiversPay" className="w-7 h-7 object-contain" />
             </div>
             <div className="bg-white border border-slate-100 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex items-center gap-1.5">
               <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />

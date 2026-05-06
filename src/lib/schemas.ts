@@ -7,7 +7,7 @@ export const paymentSchema = z.object({
   }),
   service: z.string().min(1, 'Please select a service'),
   email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Number is too short').max(16, 'Number is too long').regex(/^\d+$/, 'Must contain only digits'),
+  phone: z.string().min(10, 'Number is too short').max(20, 'Number is too long').regex(/^[\d\s\-+]+$/, 'Must contain only digits, spaces, or dashes'),
 });
 
 export type PaymentFormData = z.infer<typeof paymentSchema>;

@@ -103,9 +103,12 @@ export default function RechargePage() {
   ];
 
   const onSubmit = (data: PaymentFormData) => {
+    console.log('Submitting payment data:', data);
     setIsSubmitting(true);
+    
     // Simulate API delay
     setTimeout(() => {
+      console.log('Payment initialized, navigating to RPN page...');
       navigate('/payment-profile', { 
         state: { 
           ...data, 
@@ -117,6 +120,12 @@ export default function RechargePage() {
       });
       setIsSubmitting(false);
     }, 1500);
+  };
+
+  const onInvalid = (errors: any) => {
+    console.error('Validation Errors:', errors);
+    // Alert the user so they know why it is not submitting
+    alert('Please fill all required fields correctly. Check the form for highlighted errors.');
   };
 
   return (
@@ -524,8 +533,8 @@ export default function RechargePage() {
           <div className="bg-white border-t border-slate-100 p-8 sm:p-10 mt-auto shrink-0">
             <button 
               type="button" 
-              disabled={!isVerified || isSubmitting}
-              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit, onInvalid)}
               className="w-full bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-6 rounded-[20px] transition-all duration-300 text-2xl shadow-[0_12px_32px_rgba(30,120,250,0.35)] hover:shadow-[0_16px_40px_rgba(30,120,250,0.45)] hover:-translate-y-1.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-3"
             >
               {isSubmitting ? (

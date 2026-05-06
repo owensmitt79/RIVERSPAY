@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiversPay | Admin Verification Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-[#1E293B]" x-data="adminApp()" x-init="init()" x-cloak>
+
+    <!-- Login Page -->
+    <template x-if="!isLoggedIn">
+        <div class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-blue-600 via-indigo-700 to-slate-900 relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white rounded-full blur-[120px]"></div>
+                <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400 rounded-full blur-[120px]"></div>
+            </div>
+
+            <div class="max-w-md w-full glass p-10 rounded-3xl shadow-2xl border border-white/20 animate-fade-in">
+                <div class="text-center mb-10">
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/50">
+                        <i class="fas fa-shield-halved text-white text-3xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-800">Admin Portal</h2>
+                    <p class="text-slate-500 mt-2">Document Verification & Compliance</p>
+                </div>
+
+                <form x-show="!showRegister" @submit.prevent="handleLogin" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Work Email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" x-model="loginForm.email" required 
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                                placeholder="admin@paymentgateway.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input :type="showPassword ? 'text' : 'password'" x-model="loginForm.password" required
+                                class="w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                                placeholder="••••••••">
+                            <button type="button" @click="showPassword = !showPassword" 
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-600 transition-colors">
+                                <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center space-x-2 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                            <span class="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Remember Me</span>
+                        </label>
+                        <a href="#" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" :disabled="loading"
+                        class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-70">
+                        <template x-if="loading">
+                            <i class="fas fa-circle-notch animate-spin"></i>
+                        </template>
+                        <span x-text="loading ? 'Authenticating...' : 'Sign In to Dashboard'"></span>
+                    </button>
+                    
+                    <p class="text-center text-sm text-slate-500">
+                        Need an admin account? <a href="#" @click.prevent="showRegister = true" class="text-blue-600 font-bold hover:underline">Register here</a>
+                    </p>
+                </form>
+
+                <!-- Registration Form -->
+                <form x-show="showRegister && !showOtp" @submit.prevent="showOtp = true" class="space-y-6" x-cloak>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
+                            <input type="text" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Last Name</label>
+                            <input type="text" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Work Email</label>
+                        <input type="email" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="name@company.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Department</label>
+                        <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                            <option>Compliance & KYC</option>
+                            <option>Risk Management</option>
+                            <option>Merchant Support</option>
+                            <option>System Admin</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                            <input type="password" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="••••••••">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
+                            <input type="password" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all">
+                        Proceed to Verification
+                    </button>
+                    <p class="text-center text-sm text-slate-500">
+                        Already have an account? <a href="#" @click.prevent="showRegister = false" class="text-blue-600 font-bold hover:underline">Sign In</a>
+                    </p>
+                </form>
+
+                <!-- OTP Verification Form -->
+                <form x-show="showRegister && showOtp" @submit.prevent="handleRegister" class="space-y-6" x-cloak>
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-800">Verify your Email</h3>
+                        <p class="text-sm text-slate-500 mt-2">Enter the 6-digit OTP sent to your work email</p>
+                    </div>
+                    <div>
+                        <input type="text" required placeholder="000000" maxlength="6" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-center text-2xl tracking-[1em] font-bold">
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all">
+                        Verify & Create Account
+                    </button>
+                    <p class="text-center text-sm text-slate-500">
+                        <a href="#" @click.prevent="showOtp = false" class="text-blue-600 font-bold hover:underline">← Back to Details</a>
+                    </p>
+                </form>
+
+                <div class="mt-8 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                    <p class="text-xs text-blue-800 font-medium mb-1 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i> Demo Credentials
+                    </p>
+                    <p class="text-xs text-blue-600">Email: <span class="font-bold">admin@paymentgateway.com</span></p>
+                    <p class="text-xs text-blue-600">Password: <span class="font-bold">password123</span></p>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <a href="/" class="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors">
+                        ← Back to Main Site
+                    </a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Main Dashboard Application -->
+    <template x-if="isLoggedIn">
+        <div class="flex h-screen overflow-hidden">
+            
+            <!-- Sidebar -->
+            <aside class="w-72 bg-[#0F172A] text-slate-400 flex flex-col transition-all duration-300 z-30" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+                <div class="p-6 flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+                        <i class="fas fa-shield-halved text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold text-white tracking-tight">RiversPay <span class="text-blue-500">Admin</span></span>
+                </div>
+
+                <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto scrollbar-hide">
+                    <template x-for="item in navItems">
+                        <button @click="activeTab = item.id" 
+                            class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all group"
+                            :class="activeTab === item.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white'">
+                            <div class="flex items-center space-x-3">
+                                <i :class="item.icon" class="w-5 text-center"></i>
+                                <span class="font-medium" x-text="item.name"></span>
+                            </div>
+                            <template x-if="item.badge">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" 
+                                    :class="activeTab === item.id ? 'bg-white text-blue-600' : 'bg-red-500 text-white'" 
+                                    x-text="item.badge"></span>
+                            </template>
+                        </button>
+                    </template>
+                </nav>
+
+                <div class="p-6 border-t border-slate-800/50">
+                    <div class="p-4 bg-slate-800/50 rounded-2xl">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold border-2 border-slate-700">JS</div>
+                            <div class="overflow-hidden">
+                                <p class="text-white text-sm font-bold truncate">James Stewart</p>
+                                <p class="text-xs text-slate-500 truncate">Senior Auditor</p>
+                            </div>
+                        </div>
+                        <button @click="handleLogout" class="w-full flex items-center justify-center space-x-2 py-2 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors">
+                            <i class="fas fa-power-off"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] relative">
+                
+                <!-- Header -->
+                <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-20">
+                    <div class="flex items-center space-x-4">
+                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 rounded-lg hover:bg-slate-100">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800" x-text="getPageTitle()"></h2>
+                            <p class="text-xs text-slate-500" x-text="getGreeting()"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-6">
+                        <!-- Search -->
+                        <div class="hidden md:flex relative group">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                <i class="fas fa-search text-sm"></i>
+                            </span>
+                            <input type="text" placeholder="Search merchant ID..." class="pl-10 pr-4 py-2 bg-slate-100 border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl text-sm transition-all outline-none w-64">
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="relative p-2.5 rounded-xl hover:bg-slate-100 text-slate-500 transition-all">
+                                <i class="far fa-bell text-lg"></i>
+                                <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                            </button>
+                            <!-- Notification Dropdown -->
+                            <div x-show="open" @click.away="open = false" 
+                                class="absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50">
+                                <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                    <span class="font-bold text-slate-800">Notifications</span>
+                                    <button class="text-xs text-blue-600 font-semibold">Mark all as read</button>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <template x-for="notif in notifications">
+                                        <div class="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+                                            <div class="flex space-x-3">
+                                                <div :class="notif.color" class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <i :class="notif.icon" class="text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm text-slate-800 font-semibold" x-text="notif.title"></p>
+                                                    <p class="text-xs text-slate-500 mt-1" x-text="notif.desc"></p>
+                                                    <p class="text-[10px] text-slate-400 mt-2" x-text="notif.time"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="p-3 text-center border-t border-slate-100">
+                                    <button class="text-sm text-slate-500 hover:text-blue-600 font-medium">View all notifications</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time Display -->
+                        <div class="hidden xl:flex flex-col items-end">
+                            <span class="text-sm font-bold text-slate-800" x-text="currentTime"></span>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold" x-text="currentDate"></span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Tab Content -->
+                <div class="flex-1 overflow-y-auto p-8 scrollbar-hide">
+                    
+                    <!-- HOME TAB -->
+                    <div x-show="activeTab === 'home'" class="animate-fade-in space-y-8">
+                        <!-- KPI Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 group hover:shadow-xl hover:shadow-blue-500/5 transition-all">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-3 bg-orange-50 text-orange-500 rounded-2xl group-hover:scale-110 transition-transform">
+                                        <i class="fas fa-file-invoice text-xl"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">+12.5%</span>
+                                </div>
+                                <h3 class="text-slate-500 text-sm font-medium">Pending Documents</h3>
+                                <p class="text-3xl font-bold text-slate-800 mt-1" x-text="stats.pending"></p>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 group hover:shadow-xl hover:shadow-emerald-500/5 transition-all">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-3 bg-emerald-50 text-emerald-500 rounded-2xl group-hover:scale-110 transition-transform">
+                                        <i class="fas fa-check-double text-xl"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">84% Rate</span>
+                                </div>
+                                <h3 class="text-slate-500 text-sm font-medium">Verified Today</h3>
+                                <p class="text-3xl font-bold text-slate-800 mt-1" x-text="stats.verified"></p>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 group hover:shadow-xl hover:shadow-red-500/5 transition-all">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-3 bg-red-50 text-red-500 rounded-2xl group-hover:scale-110 transition-transform">
+                                        <i class="fas fa-ban text-xl"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg">4.2% Rejection</span>
+                                </div>
+                                <h3 class="text-slate-500 text-sm font-medium">Rejected Total</h3>
+                                <p class="text-3xl font-bold text-slate-800 mt-1" x-text="stats.rejected"></p>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 group hover:shadow-xl hover:shadow-blue-500/5 transition-all">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="p-3 bg-blue-50 text-blue-500 rounded-2xl group-hover:scale-110 transition-transform">
+                                        <i class="fas fa-users-gear text-xl"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">Active Queue</span>
+                                </div>
+                                <h3 class="text-slate-500 text-sm font-medium">Total Pending KYC</h3>
+                                <p class="text-3xl font-bold text-slate-800 mt-1" x-text="stats.kycPending"></p>
+                            </div>
+                        </div>
+
+                        <!-- Actions Bar -->
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3">
+                                <button @click="showUploadModal = true" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center space-x-2">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Upload New Document</span>
+                                </button>
+                                <button class="px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-2xl font-bold transition-all flex items-center space-x-2">
+                                    <i class="fas fa-layer-group text-slate-400"></i>
+                                    <span>Bulk Verify</span>
+                                </button>
+                            </div>
+                            <button class="px-6 py-3 text-slate-600 hover:text-blue-600 font-bold transition-all flex items-center space-x-2">
+                                <i class="fas fa-download"></i>
+                                <span>Export Pending List</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                            <!-- Recent Table -->
+                            <div class="xl:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                                    <h3 class="font-bold text-slate-800">Recently Uploaded Documents</h3>
+                                    <button @click="activeTab = 'verify'" class="text-sm font-semibold text-blue-600 hover:underline">View Queue</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead>
+                                            <tr class="text-slate-400 text-xs uppercase tracking-wider">
+                                                <th class="px-6 py-4 font-semibold">Merchant</th>
+                                                <th class="px-6 py-4 font-semibold">Document Type</th>
+                                                <th class="px-6 py-4 font-semibold">Upload Date</th>
+                                                <th class="px-6 py-4 font-semibold">Status</th>
+                                                <th class="px-6 py-4 font-semibold">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-sm divide-y divide-slate-50">
+                                            <template x-for="doc in recentDocs">
+                                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                                    <td class="px-6 py-4">
+                                                        <div class="flex items-center space-x-3">
+                                                            <div :class="doc.avatarColor" class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow-sm" x-text="doc.initials"></div>
+                                                            <span class="font-bold text-slate-700" x-text="doc.merchant"></span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-slate-600" x-text="doc.type"></td>
+                                                    <td class="px-6 py-4 text-slate-500" x-text="doc.date"></td>
+                                                    <td class="px-6 py-4">
+                                                        <span :class="getStatusClasses(doc.status)" class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider" x-text="doc.status"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <button @click="openPreview(doc)" class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Chart -->
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                                <h3 class="font-bold text-slate-800 mb-6">Verification Activity</h3>
+                                <canvas id="activityChart" class="w-full"></canvas>
+                                <div class="mt-8 space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                            <span class="text-sm text-slate-500">Average Processing Time</span>
+                                        </div>
+                                        <span class="text-sm font-bold text-slate-800">4.2 Hours</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                            <span class="text-sm text-slate-500">Auto-verification Success</span>
+                                        </div>
+                                        <span class="text-sm font-bold text-slate-800">68%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VERIFICATION TAB -->
+                    <div x-show="activeTab === 'verify'" class="animate-fade-in space-y-8">
+                        <!-- Filters -->
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-4">
+                            <div class="flex-1 min-w-[240px] relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fas fa-search text-sm"></i>
+                                </span>
+                                <input type="text" x-model="searchQuery" placeholder="Search Business Name, Merchant ID or Email..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl text-sm outline-none transition-all">
+                            </div>
+                            
+                            <select x-model="filterType" class="px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none transition-all">
+                                <option value="">All Document Types</option>
+                                <option value="PAN Card">PAN Card</option>
+                                <option value="GST Certificate">GST Certificate</option>
+                                <option value="Bank Statement">Bank Statement</option>
+                                <option value="Incorporation Certificate">Incorporation Certificate</option>
+                            </select>
+
+                            <select x-model="filterStatus" class="px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl text-sm outline-none transition-all">
+                                <option value="">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Verified">Verified</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+
+                            <button @click="resetFilters" class="p-2.5 text-slate-400 hover:text-blue-600 transition-colors">
+                                <i class="fas fa-rotate"></i>
+                            </button>
+                        </div>
+
+                        <!-- Stats Strip -->
+                        <div class="flex items-center space-x-4">
+                            <button @click="filterStatus = 'Pending'" class="px-4 py-2 rounded-xl text-sm font-bold transition-all border" :class="filterStatus === 'Pending' ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-slate-100 text-slate-500'">
+                                Pending: 12
+                            </button>
+                            <button @click="filterStatus = 'Verified'" class="px-4 py-2 rounded-xl text-sm font-bold transition-all border" :class="filterStatus === 'Verified' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-slate-100 text-slate-500'">
+                                Verified: 45
+                            </button>
+                            <button @click="filterStatus = 'Rejected'" class="px-4 py-2 rounded-xl text-sm font-bold transition-all border" :class="filterStatus === 'Rejected' ? 'bg-red-50 border-red-200 text-red-600' : 'bg-white border-slate-100 text-slate-500'">
+                                Rejected: 8
+                            </button>
+                        </div>
+
+                        <!-- Grid View -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                            <template x-for="doc in filteredDocs">
+                                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all group">
+                                    <div class="p-6">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div class="flex items-center space-x-3">
+                                                <div :class="doc.avatarColor" class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-sm" x-text="doc.initials"></div>
+                                                <div>
+                                                    <h4 class="font-bold text-slate-800 leading-none truncate w-32" x-text="doc.merchant"></h4>
+                                                    <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold" x-text="doc.merchantId"></p>
+                                                </div>
+                                            </div>
+                                            <span :class="getStatusClasses(doc.status)" class="px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase" x-text="doc.status"></span>
+                                        </div>
+                                        
+                                        <div class="space-y-3 mb-6">
+                                            <div class="flex items-center space-x-3">
+                                                <i class="fas fa-file-invoice text-slate-300 w-4"></i>
+                                                <span class="text-xs text-slate-600 font-medium" x-text="doc.type"></span>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <i class="far fa-calendar-alt text-slate-300 w-4"></i>
+                                                <span class="text-xs text-slate-500" x-text="doc.date"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                                            <button @click="openPreview(doc)" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                                                <i class="fas fa-magnifying-glass"></i>
+                                                <span>Preview & Verify</span>
+                                            </button>
+                                            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all"><i class="fas fa-check text-xs"></i></button>
+                                                <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><i class="fas fa-times text-xs"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- COMPLIANCE TAB -->
+                    <div x-show="activeTab === 'compliance'" class="animate-fade-in space-y-8">
+                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800">Merchant KYC Progress Dashboard</h3>
+                                <div class="flex space-x-3">
+                                    <span class="flex items-center space-x-2 text-xs font-semibold text-slate-500">
+                                        <i class="fas fa-circle text-[8px] text-blue-500"></i>
+                                        <span>Verified</span>
+                                    </span>
+                                    <span class="flex items-center space-x-2 text-xs font-semibold text-slate-500">
+                                        <i class="fas fa-circle text-[8px] text-emerald-500"></i>
+                                        <span>Submitted</span>
+                                    </span>
+                                    <span class="flex items-center space-x-2 text-xs font-semibold text-slate-500">
+                                        <i class="fas fa-circle text-[8px] text-slate-200"></i>
+                                        <span>Missing</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="text-slate-400 text-xs uppercase tracking-wider">
+                                            <th class="px-6 py-4 font-semibold">Merchant</th>
+                                            <th class="px-6 py-4 font-semibold">Risk Score</th>
+                                            <th class="px-6 py-4 font-semibold">Verification Progress</th>
+                                            <th class="px-6 py-4 font-semibold text-center">Incorporation</th>
+                                            <th class="px-6 py-4 text-center">PAN/Tax</th>
+                                            <th class="px-6 py-4 text-center">Bank</th>
+                                            <th class="px-6 py-4 font-semibold text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-slate-50">
+                                        <template x-for="merchant in merchants">
+                                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                                <td class="px-6 py-4">
+                                                    <p class="font-bold text-slate-800" x-text="merchant.name"></p>
+                                                    <p class="text-xs text-slate-400" x-text="merchant.id"></p>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <span :class="merchant.risk === 'High' ? 'text-red-600 bg-red-50' : merchant.risk === 'Medium' ? 'text-orange-600 bg-orange-50' : 'text-emerald-600 bg-emerald-50'" 
+                                                        class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider" x-text="merchant.risk"></span>
+                                                </td>
+                                                <td class="px-6 py-4 min-w-[150px]">
+                                                    <div class="flex items-center space-x-3">
+                                                        <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div class="h-full bg-blue-500 transition-all duration-1000" :style="'width: ' + merchant.progress + '%'"></div>
+                                                        </div>
+                                                        <span class="text-xs font-bold text-slate-700" x-text="merchant.progress + '%'"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 text-center">
+                                                    <i :class="merchant.docs.inc ? 'fas fa-circle-check text-blue-500' : 'fas fa-circle-xmark text-slate-200'" class="text-lg"></i>
+                                                </td>
+                                                <td class="px-6 py-4 text-center">
+                                                    <i :class="merchant.docs.tax ? 'fas fa-circle-check text-blue-500' : 'fas fa-circle-xmark text-slate-200'" class="text-lg"></i>
+                                                </td>
+                                                <td class="px-6 py-4 text-center">
+                                                    <i :class="merchant.docs.bank ? 'fas fa-circle-check text-blue-500' : 'fas fa-circle-xmark text-slate-200'" class="text-lg"></i>
+                                                </td>
+                                                <td class="px-6 py-4 text-right">
+                                                    <button class="px-4 py-2 bg-slate-100 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold text-slate-600 transition-all">Review Files</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUDIT LOGS TAB -->
+                    <div x-show="activeTab === 'audit'" class="animate-fade-in space-y-8">
+                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800">System Audit Trail</h3>
+                                <button class="px-4 py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                    <i class="fas fa-file-csv mr-2"></i> Export to CSV
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="text-slate-400 text-xs uppercase tracking-wider">
+                                            <th class="px-6 py-4 font-semibold">Timestamp</th>
+                                            <th class="px-6 py-4 font-semibold">Admin</th>
+                                            <th class="px-6 py-4 font-semibold">Action</th>
+                                            <th class="px-6 py-4 font-semibold">Merchant ID</th>
+                                            <th class="px-6 py-4 font-semibold">IP Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-slate-50">
+                                        <template x-for="log in auditLogs">
+                                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                                <td class="px-6 py-4 text-slate-500 font-mono text-xs" x-text="log.time"></td>
+                                                <td class="px-6 py-4">
+                                                    <span class="font-bold text-slate-700" x-text="log.admin"></span>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <span :class="log.type === 'APPROVE' ? 'text-emerald-600' : log.type === 'REJECT' ? 'text-red-600' : 'text-blue-600'" 
+                                                        class="font-bold" x-text="log.action"></span>
+                                                </td>
+                                                <td class="px-6 py-4 text-slate-500" x-text="log.target"></td>
+                                                <td class="px-6 py-4 text-slate-400 text-xs" x-text="log.ip"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+
+        <!-- MODAL: UPLOAD DOCUMENT -->
+        <div x-show="showUploadModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-transition.opacity>
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showUploadModal = false"></div>
+            <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative overflow-hidden animate-fade-in">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">Upload Merchant Document</h3>
+                    <button @click="showUploadModal = false" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <i class="fas fa-times text-slate-400"></i>
+                    </button>
+                </div>
+                
+                <form class="p-8 space-y-6" @submit.prevent="submitUpload">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Select Merchant</label>
+                            <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all">
+                                <option>Select a merchant...</option>
+                                <template x-for="m in merchants">
+                                    <option :value="m.id" x-text="m.name + ' (' + m.id + ')'"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Document Category</label>
+                            <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all">
+                                <option>Incorporation Certificate</option>
+                                <option>PAN Card</option>
+                                <option>Bank Statement</option>
+                                <option>GST Certificate</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Issue Date</label>
+                            <input type="date" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Upload File (PDF, JPG, PNG)</label>
+                        <div class="border-2 border-dashed border-slate-200 rounded-2xl p-10 flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group">
+                            <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-100 group-hover:text-blue-500 transition-all">
+                                <i class="fas fa-cloud-arrow-up text-2xl"></i>
+                            </div>
+                            <p class="text-sm font-bold text-slate-600">Drag & drop or <span class="text-blue-600">browse files</span></p>
+                            <p class="text-xs text-slate-400 mt-2">Max file size: 10MB</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4 pt-4">
+                        <button type="submit" class="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all">
+                            Upload & Queue
+                        </button>
+                        <button type="button" @click="showUploadModal = false" class="px-8 py-4 text-slate-500 font-bold hover:text-slate-800 transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: PREVIEW & VERIFY -->
+        <div x-show="showPreviewModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6" x-transition.opacity>
+            <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md" @click="showPreviewModal = false"></div>
+            <div class="bg-white w-full max-w-6xl h-[90vh] rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col lg:flex-row animate-fade-in">
+                
+                <!-- Left: Document Viewer -->
+                <div class="flex-1 bg-slate-100 relative overflow-hidden flex flex-col">
+                    <div class="absolute top-6 left-6 flex space-x-2 z-10">
+                        <button class="w-10 h-10 bg-white shadow-lg rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 transition-all"><i class="fas fa-magnifying-glass-plus"></i></button>
+                        <button class="w-10 h-10 bg-white shadow-lg rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 transition-all"><i class="fas fa-magnifying-glass-minus"></i></button>
+                        <button class="w-10 h-10 bg-white shadow-lg rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 transition-all"><i class="fas fa-rotate-right"></i></button>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-12">
+                        <div class="bg-white shadow-2xl rounded-lg w-full h-full max-w-2xl flex items-center justify-center relative group">
+                            <!-- Mock Document Content -->
+                            <div class="text-center p-20">
+                                <i class="fas fa-file-contract text-8xl text-blue-100 group-hover:scale-110 transition-transform duration-500"></i>
+                                <h4 class="text-xl font-bold text-slate-400 mt-8" x-text="selectedDoc?.type"></h4>
+                                <p class="text-sm text-slate-300 mt-2" x-text="'Ref: ' + selectedDoc?.merchantId + '-DOC-001'"></p>
+                            </div>
+                            <!-- Mock Stamp Overlay -->
+                            <template x-if="selectedDoc?.status === 'Verified'">
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-8 border-emerald-500/30 text-emerald-500/30 font-black text-6xl uppercase tracking-[1em] rotate-12 pointer-events-none select-none px-10 py-6">
+                                    VERIFIED
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Verification Panel -->
+                <div class="w-full lg:w-[450px] bg-white border-l border-slate-100 flex flex-col shadow-2xl relative">
+                    <div class="p-8 border-b border-slate-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-slate-800">Verification Logic</h3>
+                            <button @click="showPreviewModal = false" class="text-slate-400 hover:text-slate-800"><i class="fas fa-times text-xl"></i></button>
+                        </div>
+                        
+                        <div class="p-4 bg-blue-50 rounded-2xl flex items-center space-x-4 mb-6">
+                            <div :class="selectedDoc?.avatarColor" class="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white shadow-md" x-text="selectedDoc?.initials"></div>
+                            <div>
+                                <p class="font-bold text-slate-800" x-text="selectedDoc?.merchant"></p>
+                                <p class="text-xs text-blue-600 font-semibold" x-text="selectedDoc?.merchantId"></p>
+                            </div>
+                        </div>
+
+                        <!-- OCR Data Check -->
+                        <div class="space-y-4">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Automatic Validations</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-calendar-check text-emerald-500"></i>
+                                        <span class="text-sm font-medium text-slate-700">Not Expired</span>
+                                    </div>
+                                    <i class="fas fa-check-circle text-emerald-500"></i>
+                                </div>
+                                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-user-tag text-emerald-500"></i>
+                                        <span class="text-sm font-medium text-slate-700">Name Match</span>
+                                    </div>
+                                    <i class="fas fa-check-circle text-emerald-500"></i>
+                                </div>
+                                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-map-location-dot text-orange-500"></i>
+                                        <span class="text-sm font-medium text-slate-700">Address Similarity</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-lg">82%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 p-8 overflow-y-auto">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Internal Comments</label>
+                        <textarea placeholder="Add notes for compliance team..." class="w-full h-24 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:border-blue-500 transition-all mb-6"></textarea>
+
+                        <div class="space-y-4">
+                            <button @click="submitDecision('Verified')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center space-x-2">
+                                <i class="fas fa-check-double"></i>
+                                <span>Approve Document</span>
+                            </button>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button @click="submitDecision('Rejected')" class="py-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl font-bold transition-all">
+                                    Reject
+                                </button>
+                                <button class="py-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-2xl font-bold transition-all">
+                                    Resubmit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8 border-t border-slate-100 bg-slate-50">
+                        <div class="flex items-center space-x-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            <span>Audit Trail</span>
+                        </div>
+                        <p class="text-xs text-slate-500">Uploaded by Merchant on Oct 24, 10:42 AM</p>
+                        <p class="text-xs text-slate-500 mt-1">Pending verification for 4.5 hours</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </template>
+
+    <script>
+        function adminApp() {
+            return {
+                isLoggedIn: false,
+                loading: false,
+                showPassword: false,
+                showRegister: false,
+                showOtp: false,
+                sidebarOpen: true,
+                activeTab: 'home',
+                showUploadModal: false,
+                showPreviewModal: false,
+                selectedDoc: null,
+                searchQuery: '',
+                filterType: '',
+                filterStatus: '',
+                currentTime: '',
+                currentDate: '',
+                
+                loginForm: {
+                    email: '',
+                    password: ''
+                },
+
+                stats: {
+                    pending: 12,
+                    verified: 45,
+                    rejected: 8,
+                    kycPending: 34
+                },
+
+                navItems: [
+                    { id: 'home', name: 'Dashboard', icon: 'fas fa-chart-pie' },
+                    { id: 'verify', name: 'Document Verification', icon: 'fas fa-file-shield', badge: '12' },
+                    { id: 'merchants', name: 'Merchant Approvals', icon: 'fas fa-user-check' },
+                    { id: 'compliance', name: 'Compliance & KYC', icon: 'fas fa-briefcase-medical' },
+                    { id: 'audit', name: 'Audit Logs', icon: 'fas fa-list-check' },
+                    { id: 'settings', name: 'Admin Settings', icon: 'fas fa-gear' },
+                ],
+
+                notifications: [
+                    { title: 'New Document Upload', desc: 'TechNova Solutions uploaded GST Certificate', time: '5 mins ago', icon: 'fas fa-file-arrow-up', color: 'bg-blue-100 text-blue-600' },
+                    { title: 'Urgent: Risk Alert', desc: 'Mismatched details for CryptoEx Global', time: '12 mins ago', icon: 'fas fa-triangle-exclamation', color: 'bg-red-100 text-red-600' },
+                    { title: 'KYC Completed', desc: 'GreenLife Organics is now fully verified', time: '1 hour ago', icon: 'fas fa-check-circle', color: 'bg-emerald-100 text-emerald-600' },
+                ],
+
+                merchants: [
+                    { id: 'MID-10245', name: 'TechNova Solutions', risk: 'Low', progress: 85, docs: { inc: true, tax: true, bank: false } },
+                    { id: 'MID-10246', name: 'Global Retail Hub', risk: 'Medium', progress: 40, docs: { inc: true, tax: false, bank: false } },
+                    { id: 'MID-10247', name: 'CryptoEx Global', risk: 'High', progress: 60, docs: { inc: true, tax: true, bank: false } },
+                    { id: 'MID-10248', name: 'GreenLife Organics', risk: 'Low', progress: 100, docs: { inc: true, tax: true, bank: true } },
+                    { id: 'MID-10249', name: 'Urban Eataries', risk: 'Medium', progress: 75, docs: { inc: true, tax: true, bank: false } },
+                    { id: 'MID-10250', name: 'SkyHigh Travels', risk: 'Low', progress: 90, docs: { inc: true, tax: true, bank: true } },
+                ],
+
+                recentDocs: [],
+                allDocs: [],
+                auditLogs: [],
+
+                init() {
+                    // Check local storage for login state
+                    if (sessionStorage.getItem('adminLoggedIn')) {
+                        this.isLoggedIn = true;
+                        this.initDashboard();
+                    }
+
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+
+                    // Generate Mock Documents
+                    this.generateMockDocs();
+                    this.generateMockAuditLogs();
+                },
+
+                updateTime() {
+                    const now = new Date();
+                    this.currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    this.currentDate = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                },
+
+                handleLogin() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        if (this.loginForm.email === 'admin@paymentgateway.com' && this.loginForm.password === 'password123') {
+                            this.isLoggedIn = true;
+                            sessionStorage.setItem('adminLoggedIn', 'true');
+                            this.initDashboard();
+                        } else {
+                            alert('Invalid credentials. Use the demo account.');
+                        }
+                        this.loading = false;
+                    }, 1500);
+                },
+
+                handleLogout() {
+                    sessionStorage.removeItem('adminLoggedIn');
+                    this.isLoggedIn = false;
+                    this.activeTab = 'home';
+                },
+
+                handleRegister() {
+                    alert('Registration successful! A system administrator will review your account shortly.');
+                    this.showRegister = false;
+                    this.showOtp = false;
+                },
+
+                initDashboard() {
+                    this.$nextTick(() => {
+                        this.initChart();
+                    });
+                },
+
+                initChart() {
+                    const ctx = document.getElementById('activityChart');
+                    if (!ctx) return;
+                    
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Documents Processed',
+                                data: [25, 42, 38, 55, 30, 15, 20],
+                                backgroundColor: '#3B82F6',
+                                borderRadius: 8,
+                                borderSkipped: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+                                x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                            }
+                        }
+                    });
+                },
+
+                generateMockDocs() {
+                    const docTypes = ['PAN Card', 'GST Certificate', 'Bank Statement', 'Incorporation Certificate', 'Address Proof'];
+                    const merchants = ['TechNova Solutions', 'Global Retail Hub', 'CryptoEx Global', 'GreenLife Organics', 'Urban Eataries', 'SkyHigh Travels', 'Zenith Logistics', 'Aura Beauty', 'Titan Steel', 'Nova Soft'];
+                    const statuses = ['Pending', 'Verified', 'Rejected'];
+                    const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-emerald-500', 'bg-orange-500'];
+
+                    const docs = [];
+                    for (let i = 0; i < 30; i++) {
+                        const mIndex = Math.floor(Math.random() * merchants.length);
+                        const merchant = merchants[mIndex];
+                        docs.push({
+                            id: i + 1,
+                            merchant: merchant,
+                            merchantId: 'MID-10' + (245 + mIndex),
+                            type: docTypes[Math.floor(Math.random() * docTypes.length)],
+                            date: 'Oct ' + (20 + Math.floor(Math.random() * 9)) + ', 2026',
+                            status: i < 12 ? 'Pending' : statuses[Math.floor(Math.random() * statuses.length)],
+                            initials: merchant.split(' ').map(n => n[0]).join(''),
+                            avatarColor: colors[mIndex % colors.length]
+                        });
+                    }
+                    this.allDocs = docs;
+                    this.recentDocs = docs.slice(0, 5);
+                },
+
+                generateMockAuditLogs() {
+                    const admins = ['James Stewart', 'Sarah Chen', 'Michael Ross'];
+                    const actions = [
+                        { type: 'APPROVE', action: 'Approved GST Certificate', target: 'MID-10248' },
+                        { type: 'REJECT', action: 'Rejected PAN Card (Blurry)', target: 'MID-10247' },
+                        { type: 'VIEW', action: 'Viewed Incorporation Docs', target: 'MID-10245' },
+                        { type: 'UPLOAD', action: 'Uploaded new bank statement', target: 'MID-10249' }
+                    ];
+
+                    for (let i = 0; i < 20; i++) {
+                        const act = actions[Math.floor(Math.random() * actions.length)];
+                        this.auditLogs.push({
+                            time: '2026-10-29 14:' + (10 + i) + ':' + (10 + i),
+                            admin: admins[Math.floor(Math.random() * admins.length)],
+                            type: act.type,
+                            action: act.action,
+                            target: act.target,
+                            ip: '192.168.1.' + (100 + i)
+                        });
+                    }
+                },
+
+                getStatusClasses(status) {
+                    if (status === 'Verified') return 'bg-emerald-100 text-emerald-600';
+                    if (status === 'Pending') return 'bg-orange-100 text-orange-600';
+                    if (status === 'Rejected') return 'bg-red-100 text-red-600';
+                    return 'bg-slate-100 text-slate-600';
+                },
+
+                getPageTitle() {
+                    const item = this.navItems.find(i => i.id === this.activeTab);
+                    return item ? item.name : 'RiversPay Admin';
+                },
+
+                getGreeting() {
+                    const hour = new Date().getHours();
+                    if (hour < 12) return 'Good Morning, James';
+                    if (hour < 18) return 'Good Afternoon, James';
+                    return 'Good Evening, James';
+                },
+
+                openPreview(doc) {
+                    this.selectedDoc = doc;
+                    this.showPreviewModal = true;
+                },
+
+                submitDecision(newStatus) {
+                    if (this.selectedDoc) {
+                        this.selectedDoc.status = newStatus;
+                        // Add to audit log
+                        this.auditLogs.unshift({
+                            time: new Date().toISOString().replace('T', ' ').split('.')[0],
+                            admin: 'James Stewart',
+                            type: newStatus === 'Verified' ? 'APPROVE' : 'REJECT',
+                            action: (newStatus === 'Verified' ? 'Approved ' : 'Rejected ') + this.selectedDoc.type,
+                            target: this.selectedDoc.merchantId,
+                            ip: '127.0.0.1'
+                        });
+                        
+                        // Show success notification simulation
+                        const btn = event.currentTarget;
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Processing...';
+                        btn.disabled = true;
+
+                        setTimeout(() => {
+                            this.showPreviewModal = false;
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            
+                            // Update counts
+                            if (newStatus === 'Verified') this.stats.verified++;
+                            if (newStatus === 'Rejected') this.stats.rejected++;
+                            this.stats.pending--;
+                        }, 1000);
+                    }
+                },
+
+                submitUpload() {
+                    this.showUploadModal = false;
+                    alert('Document successfully uploaded to verification queue.');
+                    this.stats.pending++;
+                },
+
+                resetFilters() {
+                    this.searchQuery = '';
+                    this.filterType = '';
+                    this.filterStatus = '';
+                },
+
+                get filteredDocs() {
+                    return this.allDocs.filter(doc => {
+                        const matchSearch = doc.merchant.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                          doc.merchantId.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        const matchType = this.filterType === '' || doc.type === this.filterType;
+                        const matchStatus = this.filterStatus === '' || doc.status === this.filterStatus;
+                        return matchSearch && matchType && matchStatus;
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

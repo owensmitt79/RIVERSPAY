@@ -26,7 +26,7 @@ export default function LoginPage() {
 
   const onPersonal = (data: PersonalLoginData) => {
     console.log('Personal login:', data);
-    navigate('/');
+    navigate('/dashboard');
   };
 
   // ── Corporate form ──────────────────────────────────────
@@ -37,7 +37,7 @@ export default function LoginPage() {
 
   const onCorporate = (data: CorporateLoginData) => {
     console.log('Corporate login:', data);
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
@@ -66,22 +66,20 @@ export default function LoginPage() {
         <div className="flex w-full border-b border-slate-200 mb-8">
           <button
             onClick={() => setTab('personal')}
-            className={`flex items-center gap-2 flex-1 justify-center pb-3 text-sm font-semibold transition-all ${
-              tab === 'personal'
-                ? 'text-[#1a9e87] border-b-2 border-[#1a9e87] -mb-px'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
+            className={`flex items-center gap-2 flex-1 justify-center pb-3 text-sm font-semibold transition-all ${tab === 'personal'
+              ? 'text-[#1a9e87] border-b-2 border-[#1a9e87] -mb-px'
+              : 'text-slate-400 hover:text-slate-600'
+              }`}
           >
             <User className="w-4 h-4" />
             Personal/MSME
           </button>
           <button
             onClick={() => setTab('corporate')}
-            className={`flex items-center gap-2 flex-1 justify-center pb-3 text-sm font-semibold transition-all ${
-              tab === 'corporate'
-                ? 'text-[#1a9e87] border-b-2 border-[#1a9e87] -mb-px'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
+            className={`flex items-center gap-2 flex-1 justify-center pb-3 text-sm font-semibold transition-all ${tab === 'corporate'
+              ? 'text-[#1a9e87] border-b-2 border-[#1a9e87] -mb-px'
+              : 'text-slate-400 hover:text-slate-600'
+              }`}
           >
             <Building2 className="w-4 h-4" />
             Corporate

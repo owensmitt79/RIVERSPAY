@@ -30,12 +30,12 @@ export default function ResendReceiptPage() {
           <div className="bg-white border border-[#EDEDED] shadow-[0_4px_24px_rgba(0,0,0,0.02)] p-10 sm:p-14 space-y-8">
             <div className="space-y-3">
               <label className="text-[15px] font-medium text-slate-700">
-                Rivers State Payment (RSP)
+                Reference Payment Number (RPN)
               </label>
               <div className="relative">
                 <input 
                   type="text" 
-                  placeholder="Enter RSP Number"
+                  placeholder="Enter RPN Number"
                   className="w-full border border-[#D1D1D1] rounded-[4px] px-6 py-4 outline-none text-slate-600 text-lg placeholder:text-slate-300 placeholder:font-light hover:border-slate-400 focus:border-brand-primary transition-all"
                 />
               </div>
